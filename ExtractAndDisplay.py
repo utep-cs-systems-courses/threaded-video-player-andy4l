@@ -25,7 +25,7 @@ def extractFrames(fileName, outputBuffer, maxFramesToLoad=9999):
         jpgAsText = base64.b64encode(jpgImage)
 
         # add the frame to the buffer
-        outputBuffer.put(image)
+        outputBuffer.put(jpgAsText)
        
         success,image = vidcap.read()
         print(f'Reading frame {count} {success}')
@@ -41,13 +41,22 @@ def displayFrames(inputBuffer):
     # go through each frame in the buffer until the buffer is empty
     while not inputBuffer.empty():
         # get the next frame
-        frame = inputBuffer.get()
+        nextFrame = inputBuffer.get()
+        
+        #decode
+        jpgRawImage = base64.b64decode(nextFrame)
+        
+        #convert raw frame to numpy array
+        jpgImage = np.asarray(bytearray(jpgRawImage), dtype=np.uint8)
+        
+        #get jpeg encoded frame
+        img = cv2.imdecode( jpgImage ,cv2.IMREAD_UNCHANGED)
 
         print(f'Displaying frame {count}')        
 
         # display the image in a window called "video" and wait 42ms
         # before displaying the next frame
-        cv2.imshow('Video', frame)
+        cv2.imshow('Video', img)
         if cv2.waitKey(42) and 0xFF == ord("q"):
             break
 
@@ -64,7 +73,7 @@ filename = 'clip.mp4'
 extractionQueue = queue.Queue()
 
 # extract the frames
-extractFrames(filename,extractionQueue, 72)
+extractFrames(filename,extractionQueue, 800)
 
 # display the frames
 displayFrames(extractionQueue)
